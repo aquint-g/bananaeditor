@@ -139,12 +139,13 @@ label[for="asset-upload"]:hover {
     aspect-ratio: 16 / 9;
     position: relative;
     overflow: hidden;
-    border: 2px dashed transparent;
-    transition: border-color 0.3s ease, aspect-ratio 0.4s ease, width 0.4s ease, height 0.4s ease;
+    border: 2px solid var(--border-color);
+    transition: box-shadow 0.3s ease, aspect-ratio 0.4s ease, width 0.4s ease, height 0.4s ease;
+    box-shadow: 0 0 0px var(--primary-color);
 }
 
 #canvas.drag-over {
-    border-color: var(--primary-color);
+    box-shadow: var(--hover-glow);
 }
 
 #canvas.tall {
