@@ -33,31 +33,50 @@ async function handleReimagine() {
         return;
     }
 
-    // --- MOCKUP BEHAVIOR ---
-    // In a real app, this would be an API call to an AI image generator.
-    // Here, we'll use a placeholder service (picsum.photos) and use the
-    // prompt as a "seed" to get a consistent-ish image for the same text.
+    if (!aiTargetItem) {
+        alert("No item selected to reimagine!");
+        return;
+    }
 
     resultsContainer.innerHTML = '<p class="placeholder-text">Generating...</p>';
     reimagineBtn.disabled = true;
 
-    // Simple hash function to convert prompt string to a number for the seed
-    let seed = 0;
-    for (let i = 0; i < prompt.length; i++) {
-        seed += prompt.charCodeAt(i);
-    }
-
-    // Fetch the image
     try {
-        newImageUrl = `https://picsum.photos/seed/${seed}/400/300`;
+        const imageElement = aiTargetItem.querySelector('.canvas-item');
+        const imageUrl = imageElement.src;
 
-        // Preload the image to ensure it's cached before showing
-        await new Promise((resolve, reject) => {
-            const img = new Image();
-            img.onload = resolve;
-            img.onerror = reject;
-            img.src = newImageUrl;
+        // Fetch the image data from its source URL
+        const response = await fetch(imageUrl);
+        if (!response.ok) {
+            throw new Error(`Failed to fetch image: ${response.statusText}`);
+        }
+        const blob = await response.blob();
+
+        // Create a FormData object to send the file and prompt
+        const formData = new FormData();
+        // Use a generic filename; the server will handle it.
+        // The mimetype is inferred from the blob, but we can be explicit.
+        formData.append('file', blob, 'image_to_remix.png');
+        formData.append('prompt', prompt);
+
+        // Make the API call to our backend
+        const remixResponse = await fetch('/remix', {
+            method: 'POST',
+            body: formData
         });
+
+        if (!remixResponse.ok) {
+            const errorData = await remixResponse.json().catch(() => ({ error: 'Unknown server error' }));
+            throw new Error(`Server error: ${remixResponse.statusText} - ${errorData.error}`);
+        }
+
+        const newImageBlob = await remixResponse.blob();
+
+        // Revoke the old URL if it exists to prevent memory leaks
+        if (newImageUrl) {
+            URL.revokeObjectURL(newImageUrl);
+        }
+        newImageUrl = URL.createObjectURL(newImageBlob);
 
         resultsContainer.innerHTML = `<img src="${newImageUrl}" alt="AI generated image">`;
 
@@ -68,13 +87,14 @@ async function handleReimagine() {
             acceptBtn.id = 'accept-ai-btn';
             acceptBtn.textContent = 'Accept & Replace';
             acceptBtn.addEventListener('click', acceptAIImage);
-            resultsContainer.insertAdjacentElement('afterend', acceptBtn);
+            // Place it after the results container (which now holds the image)
+            document.querySelector('.modal-content').appendChild(acceptBtn);
         }
         acceptBtn.style.display = 'block';
 
     } catch (error) {
-        resultsContainer.innerHTML = '<p class="placeholder-text">Failed to load image. Please try again.</p>';
-        console.error("Error fetching AI image:", error);
+        resultsContainer.innerHTML = '<p class="placeholder-text">Failed to generate image. Please try again.</p>';
+        console.error("Error during reimagine:", error);
     } finally {
         reimagineBtn.disabled = false;
     }
