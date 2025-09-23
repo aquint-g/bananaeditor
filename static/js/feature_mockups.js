@@ -1,30 +1,95 @@
 import { resetZIndexCounter } from './canvas_manager.js';
 
-// --- "REINVENT WITH AI" MODAL ---
+// --- "RE-IMAGINE WITH AI" MODAL ---
 
-// The canvas item that the AI feature is targeting
-let aiTargetItem = null;
+let aiTargetItem = null; // The canvas item that the AI feature is targeting
+let newImageUrl = null; // URL of the generated image
 
 /**
- * Populates the AI modal with 4 new random placeholder images.
+ * Resets the AI modal to its initial state.
  */
-function populateAIModal() {
-    const propositions = document.getElementById('ai-propositions');
-    propositions.innerHTML = '';
-    for (let i = 0; i < 4; i++) {
-        const img = document.createElement('img');
-        // Use a placeholder service. Add a random query to avoid caching.
-        img.src = `https://picsum.photos/200/300?random=${Date.now() + i}`;
-        img.addEventListener('click', () => {
-            // When a proposition is clicked, replace the target's image source
-            if (aiTargetItem) {
-                aiTargetItem.querySelector('.canvas-item').src = img.src;
-                closeAIModal();
-            }
+function resetAIModal() {
+    document.getElementById('ai-prompt').value = '';
+    const resultsContainer = document.getElementById('ai-results');
+    resultsContainer.innerHTML = '<p class="placeholder-text">AI generations will appear here</p>';
+    const acceptBtn = document.getElementById('accept-ai-btn');
+    if (acceptBtn) {
+        acceptBtn.remove(); // Remove button if it exists
+    }
+    newImageUrl = null;
+}
+
+/**
+ * Handles the "Reimagine" button click.
+ * Fetches a new image based on the prompt.
+ */
+async function handleReimagine() {
+    const prompt = document.getElementById('ai-prompt').value;
+    const resultsContainer = document.getElementById('ai-results');
+    const reimagineBtn = document.getElementById('auto-reimagine-btn');
+
+    if (!prompt) {
+        alert("Please enter a prompt!");
+        return;
+    }
+
+    // --- MOCKUP BEHAVIOR ---
+    // In a real app, this would be an API call to an AI image generator.
+    // Here, we'll use a placeholder service (picsum.photos) and use the
+    // prompt as a "seed" to get a consistent-ish image for the same text.
+
+    resultsContainer.innerHTML = '<p class="placeholder-text">Generating...</p>';
+    reimagineBtn.disabled = true;
+
+    // Simple hash function to convert prompt string to a number for the seed
+    let seed = 0;
+    for (let i = 0; i < prompt.length; i++) {
+        seed += prompt.charCodeAt(i);
+    }
+
+    // Fetch the image
+    try {
+        newImageUrl = `https://picsum.photos/seed/${seed}/400/300`;
+
+        // Preload the image to ensure it's cached before showing
+        await new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = resolve;
+            img.onerror = reject;
+            img.src = newImageUrl;
         });
-        propositions.appendChild(img);
+
+        resultsContainer.innerHTML = `<img src="${newImageUrl}" alt="AI generated image">`;
+
+        // Create and show the "Accept" button if it doesn't exist
+        let acceptBtn = document.getElementById('accept-ai-btn');
+        if (!acceptBtn) {
+            acceptBtn = document.createElement('button');
+            acceptBtn.id = 'accept-ai-btn';
+            acceptBtn.textContent = 'Accept & Replace';
+            acceptBtn.addEventListener('click', acceptAIImage);
+            resultsContainer.insertAdjacentElement('afterend', acceptBtn);
+        }
+        acceptBtn.style.display = 'block';
+
+    } catch (error) {
+        resultsContainer.innerHTML = '<p class="placeholder-text">Failed to load image. Please try again.</p>';
+        console.error("Error fetching AI image:", error);
+    } finally {
+        reimagineBtn.disabled = false;
     }
 }
+
+/**
+ * Replaces the target item's image with the newly generated one.
+ */
+function acceptAIImage() {
+    if (aiTargetItem && newImageUrl) {
+        aiTargetItem.querySelector('.canvas-item').src = newImageUrl;
+        closeAIModal();
+    }
+}
+
 
 /**
  * Opens the AI modal and sets the target item.
@@ -32,9 +97,9 @@ function populateAIModal() {
  */
 function openAIModal(targetItem) {
     aiTargetItem = targetItem;
+    resetAIModal(); // Clear previous state
     const modal = document.getElementById('ai-modal');
     modal.style.display = 'flex';
-    populateAIModal();
 }
 
 /**
@@ -50,25 +115,22 @@ function closeAIModal() {
 
 /**
  * Exports the current canvas content as a PNG image.
- * Uses the html2canvas library to render the DOM to a canvas.
  */
 function exportCanvas() {
-    // Temporarily deselect item to hide handles in the export
     const selectedItem = document.querySelector('.canvas-item-wrapper.selected');
     if (selectedItem) {
         selectedItem.classList.remove('selected');
     }
 
     html2canvas(document.getElementById('canvas'), {
-        backgroundColor: null, // Make background transparent
-        useCORS: true // Important for external images
+        backgroundColor: null,
+        useCORS: true
     }).then(canvas => {
         const link = document.createElement('a');
         link.download = 'banana-canvas-export.png';
         link.href = canvas.toDataURL('image/png');
         link.click();
 
-        // Reselect item if it was selected before
         if (selectedItem) {
             selectedItem.classList.add('selected');
         }
@@ -76,11 +138,10 @@ function exportCanvas() {
 }
 
 /**
- * Clears all items from the canvas and resets the z-index counter.
+ * Clears all items from the canvas.
  */
 function clearCanvas() {
-    const canvas = document.getElementById('canvas');
-    canvas.innerHTML = '';
+    document.getElementById('canvas').innerHTML = '';
     resetZIndexCounter();
 }
 
@@ -92,16 +153,15 @@ function clearCanvas() {
 export function initMockupFeatures() {
     const modal = document.getElementById('ai-modal');
     const closeBtn = modal.querySelector('.close-btn');
-    const reinventBtn = document.getElementById('reinvent-again-btn');
+    const reimagineBtn = document.getElementById('auto-reimagine-btn');
     const exportBtn = document.getElementById('export-btn');
     const clearBtn = document.getElementById('clear-btn');
 
     closeBtn.addEventListener('click', closeAIModal);
-    reinventBtn.addEventListener('click', populateAIModal);
+    reimagineBtn.addEventListener('click', handleReimagine);
     exportBtn.addEventListener('click', exportCanvas);
     clearBtn.addEventListener('click', clearCanvas);
 
-    // Close modal if user clicks outside the content area
     modal.addEventListener('click', (e) => {
         if (e.target === modal) {
             closeAIModal();
@@ -109,5 +169,4 @@ export function initMockupFeatures() {
     });
 }
 
-// Export the openAIModal function so it can be called from canvas_manager
 export { openAIModal };

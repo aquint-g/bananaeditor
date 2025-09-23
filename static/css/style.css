@@ -230,52 +230,98 @@ label[for="asset-upload"]:hover {
 
 .modal-content {
     background-color: var(--panel-bg-color);
-    padding: 20px;
-    border-radius: 10px;
+    padding: 30px;
+    border-radius: 15px;
     border: 1px solid var(--border-color);
-    width: 60%;
-    max-width: 800px;
+    width: 90%;
+    max-width: 450px;
     text-align: center;
+    box-shadow: 0 5px 25px rgba(0,0,0,0.3);
 }
 
 .close-btn {
     color: var(--text-color);
-    float: right;
+    position: absolute;
+    top: 10px;
+    right: 15px;
     font-size: 28px;
     font-weight: bold;
     cursor: pointer;
+    transition: color 0.3s ease;
 }
 
-#ai-propositions {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
+.close-btn:hover {
+    color: var(--primary-color);
+}
+
+#ai-controls {
+    display: flex;
+    flex-direction: column;
     gap: 15px;
-    margin: 20px 0;
+    margin-bottom: 20px;
 }
 
-#ai-propositions img {
+#ai-prompt {
     width: 100%;
-    height: auto;
+    padding: 12px;
+    border-radius: 5px;
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-size: 1em;
+    box-sizing: border-box;
+}
+
+#auto-reimagine-btn {
+    background-color: var(--secondary-color);
+    color: white;
+    border: none;
+    padding: 12px 15px;
     border-radius: 5px;
     cursor: pointer;
-    border: 2px solid transparent;
-    transition: border-color 0.3s ease;
+    font-size: 1em;
+    transition: box-shadow 0.3s ease, background-color 0.3s ease;
 }
 
-#ai-propositions img:hover {
-    border-color: var(--primary-color);
+#auto-reimagine-btn:hover {
+    box-shadow: 0 0 15px var(--secondary-color);
+    background-color: #a380ea; /* Lighter purple */
 }
 
-#reinvent-again-btn {
-    background-color: var(--secondary-color);
+#ai-results {
+    margin-top: 20px;
+    min-height: 200px; /* Reserve space for the image */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 2px dashed var(--border-color);
+    border-radius: 10px;
+    padding: 10px;
+    background-color: var(--bg-color);
+}
+
+#ai-results img {
+    max-width: 100%;
+    max-height: 300px;
+    border-radius: 5px;
+}
+
+#ai-results .placeholder-text {
+    color: #888;
+}
+
+#accept-ai-btn {
+    background-color: var(--primary-color);
     color: white;
     border: none;
     padding: 10px 15px;
     border-radius: 5px;
     cursor: pointer;
     transition: box-shadow 0.3s ease;
+    margin-top: 15px;
+    display: none; /* Initially hidden */
 }
 
-#reinvent-again-btn:hover {
-    box-shadow: 0 0 15px var(--secondary-color);
+#accept-ai-btn:hover {
+    box-shadow: var(--hover-glow);
 }
