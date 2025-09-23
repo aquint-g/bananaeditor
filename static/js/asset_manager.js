@@ -12,10 +12,21 @@ function handleFileUpload(event) {
         if (file.type.startsWith('image/')) {
             const reader = new FileReader();
             reader.onload = (e) => {
+                const assetItem = document.createElement('div');
+                assetItem.classList.add('asset-item');
+
                 const img = document.createElement('img');
                 img.src = e.target.result;
+                img.title = file.name;
                 img.classList.add('asset-thumbnail');
-                assetList.appendChild(img);
+
+                const p = document.createElement('p');
+                p.textContent = file.name;
+
+                assetItem.appendChild(img);
+                assetItem.appendChild(p);
+                assetList.appendChild(assetItem);
+
                 // Make the new thumbnail draggable
                 makeAssetDraggable(img);
             };
