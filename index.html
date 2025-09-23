@@ -17,8 +17,6 @@
         <div id="main-content">
             <div id="top-toolbar">
                 <button id="aspect-ratio-btn">Toggle Aspect Ratio (16:9)</button>
-                <button id="z-back-btn" disabled>Send to Back</button>
-                <button id="z-front-btn" disabled>Bring to Front</button>
                 <button id="clear-btn">Clear Canvas</button>
                 <button id="export-btn">Export Image</button>
             </div>
@@ -43,6 +41,16 @@
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" integrity="sha512-BNaRQnYJYiPSqHHDb58B0yaPfCu+Wgds8Gp/gU33kqBtgNS4tSPHuGibyoeqMV/TJlSKda6FXzoEyYGjTe+vXA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <div id="context-menu" class="context-menu">
+        <ul>
+            <li id="context-front">Bring to Front</li>
+            <li id="context-back">Send to Back</li>
+            <li id="context-delete">Delete</li>
+            <li id="context-ai-reinvent">Reinvent with AI</li>
+        </ul>
+    </div>
+
     <script src="/static/js/main.js" type="module"></script>
 </body>
 </html>

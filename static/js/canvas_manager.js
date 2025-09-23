@@ -51,6 +51,7 @@ function createItem(src, x, y) {
     wrapper.appendChild(aiHandle);
 
     wrapper.addEventListener('mousedown', onMouseDown);
+    wrapper.addEventListener('contextmenu', onContextMenu);
     canvas.appendChild(wrapper);
     selectItem(wrapper);
     checkBounds(wrapper);
@@ -68,7 +69,6 @@ function selectItem(item) {
     }
     activeItem = item;
     activeItem.classList.add('selected');
-    updateToolbarButtons(true);
 }
 
 /**
@@ -79,7 +79,6 @@ function deselectAll() {
         activeItem.classList.remove('selected');
         activeItem = null;
     }
-    updateToolbarButtons(false);
 }
 
 // --- MOUSE EVENT HANDLING for Transformations ---
@@ -164,17 +163,35 @@ function onMouseUp() {
     document.removeEventListener('mouseup', onMouseUp);
 }
 
+// --- CONTEXT MENU ---
+
+const contextMenu = document.getElementById('context-menu');
+
+function showContextMenu(x, y) {
+    contextMenu.style.left = `${x}px`;
+    contextMenu.style.top = `${y}px`;
+    contextMenu.style.display = 'block';
+}
+
+function hideContextMenu() {
+    contextMenu.style.display = 'none';
+}
+
+function onContextMenu(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    const wrapper = e.target.closest('.canvas-item-wrapper');
+    selectItem(wrapper);
+    showContextMenu(e.clientX, e.clientY);
+}
+
+
 // --- TOOLBAR AND CANVAS CONTROLS ---
 
 /**
  * Enables or disables toolbar buttons based on whether an item is selected.
  * @param {boolean} itemIsSelected - True if an item is selected.
  */
-function updateToolbarButtons(itemIsSelected) {
-    document.getElementById('z-front-btn').disabled = !itemIsSelected;
-    document.getElementById('z-back-btn').disabled = !itemIsSelected;
-}
-
 function bringToFront() {
     if (activeItem) {
         activeItem.style.zIndex = zIndexCounter++;
@@ -187,6 +204,14 @@ function sendToBack() {
         const zIndexes = items.map(item => parseInt(item.style.zIndex || 0));
         const minZIndex = Math.min(...zIndexes);
         activeItem.style.zIndex = minZIndex - 1;
+    }
+}
+
+function deleteItem() {
+    if (activeItem) {
+        activeItem.remove();
+        activeItem = null;
+        hideContextMenu();
     }
 }
 
@@ -276,8 +301,44 @@ export function initCanvasManager() {
         }
     });
 
+    // Global listeners to hide context menu
+    window.addEventListener('click', (e) => {
+        if (!contextMenu.contains(e.target)) {
+            hideContextMenu();
+        }
+    });
+    window.addEventListener('contextmenu', (e) => {
+        // Hide if right-clicking anywhere but on a canvas item
+        if (!e.target.closest('.canvas-item-wrapper')) {
+            hideContextMenu();
+        }
+    });
+
+    // Context menu command listeners
+    contextMenu.addEventListener('click', (e) => {
+        if (!activeItem) return;
+
+        const command = e.target.id;
+
+        switch (command) {
+            case 'context-front':
+                bringToFront();
+                break;
+            case 'context-back':
+                sendToBack();
+                break;
+            case 'context-delete':
+                deleteItem();
+                break;
+            case 'context-ai-reinvent':
+                // This function is imported from feature_mockups.js
+                openAIModal(activeItem);
+                break;
+        }
+        // Always hide the menu after a command is executed
+        hideContextMenu();
+    });
+
     // Toolbar button listeners
-    document.getElementById('z-front-btn').addEventListener('click', bringToFront);
-    document.getElementById('z-back-btn').addEventListener('click', sendToBack);
     document.getElementById('aspect-ratio-btn').addEventListener('click', toggleAspectRatio);
 }
