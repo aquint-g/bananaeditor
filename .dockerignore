@@ -1,0 +1,24 @@
+# Ignore Python virtual environments
+venv/
+*.pyc
+__pycache__/
+
+# Ignore Git files
+.git
+.gitignore
+
+# Ignore Docker files
+Dockerfile
+.dockerignore
+
+# Ignore build artifacts
+*.log
+temp_uploads/
+
+# Ignore local development files
+.idea/
+.vscode/
+cloudbuild.yaml
+README.md
+test.png
+server.log
