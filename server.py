@@ -33,7 +33,7 @@ def remix_images(
     if not api_key:
         raise ValueError("GEMINI_API_KEY environment variable not set.")
 
-    client = genai.Client(vertexai=True,project='resonance-ai-prod',location='global')
+    client = genai.Client(vertexai=True,project='banana-canvas-editor',location='global')
 
     contents = _load_image_parts(image_paths)
     contents.append(genai.types.Part.from_text(text=prompt))
