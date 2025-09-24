@@ -16,14 +16,13 @@ def remix_images(
     prompt: str,
 ):
     """
-    Remixes images using the Google Generative AI model, generating one image, using an API Key.
+    Remixes images using the Google Generative AI model, generating one image.
     """
     api_key = os.environ.get("GOOGLE_CLOUD_API_KEY")
     if not api_key:
-        raise ValueError("GOOGLE_CLOUD_API_KEY environment variable not set.")
+        raise ValueError("GEMINI_API_KEY environment variable not set.")
 
-    genai.configure(api_key=api_key)
-    client = genai.Client()
+    client = genai.Client(vertexai=True,project='resonance-ai-prod',location='global')
 
     contents = _load_image_parts(image_paths)
     contents.append(genai.types.Part.from_text(text=prompt))
