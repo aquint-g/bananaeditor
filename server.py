@@ -6,6 +6,7 @@ import io
 from flask import Flask, render_template, request, jsonify, send_file
 from google import genai
 from google.genai import types
+import google.auth
 
 # --- Gemini Nano Banana Model ---
 NANO_BANANA_MODEL_NAME = "gemini-2.5-flash-image-preview"
@@ -19,6 +20,16 @@ def remix_images(
     Remixes images using the Google Generative AI model, generating one image.
     """
     api_key = os.environ.get("GOOGLE_CLOUD_API_KEY")
+    print(f"--- DEBUG: API Key found in env: {'Y' if api_key else 'N'}")
+
+    try:
+        credentials, project_id = google.auth.default()
+        print(f"--- DEBUG: ADC Credentials found. Project: {project_id}")
+        if hasattr(credentials, 'service_account_email'):
+            print(f"--- DEBUG: ADC Service Account: {credentials.service_account_email}")
+    except google.auth.exceptions.DefaultCredentialsError:
+        print("--- DEBUG: ADC Credentials not found.")
+
     if not api_key:
         raise ValueError("GEMINI_API_KEY environment variable not set.")
 
