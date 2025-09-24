@@ -2,3 +2,4 @@ flask
 google-generativeai
 google-cloud-aiplatform
 gunicorn
+google-auth
