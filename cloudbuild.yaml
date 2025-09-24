@@ -1,0 +1,43 @@
+steps:
+  # Build the container image
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_SERVICE_NAME}:${_TAG_NAME}'
+      - '.'
+
+  # Push the container image to Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_SERVICE_NAME}:${_TAG_NAME}'
+
+  # Deploy container image to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - '${_SERVICE_NAME}'
+      - '--image'
+      - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_SERVICE_NAME}:${_TAG_NAME}'
+      - '--region'
+      - '${_REGION}'
+      - '--platform'
+      - 'managed'
+      - '--set-env-vars'
+      - 'GOOGLE_CLOUD_API_KEY=${_GEMINI_API_KEY}'
+
+# Store the image in Artifact Registry
+images:
+  - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_SERVICE_NAME}:${_TAG_NAME}'
+
+# Default substitution variables
+substitutions:
+  _SERVICE_NAME: 'gemini-image-remix'
+  _REPOSITORY: 'cloud-run-source-deploy'
+  _REGION: 'us-central1'
+  _TAG_NAME: 'latest'
+  # _GEMINI_API_KEY is expected to be set in the build trigger
+  _GEMINI_API_KEY: ''
