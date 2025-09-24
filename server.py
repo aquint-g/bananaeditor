@@ -40,6 +40,32 @@ def remix_images(
     return _process_api_stream_response(stream)
 
 
+def remix_images_with_api_key(
+    image_paths: list[str],
+    prompt: str,
+):
+    """
+    Remixes images using the Google Generative AI model, generating one image, using an API Key.
+    """
+    api_key = os.environ.get("GOOGLE_CLOUD_API_KEY")
+    if not api_key:
+        raise ValueError("GOOGLE_CLOUD_API_KEY environment variable not set.")
+
+    genai.configure(api_key=api_key)
+
+    model = genai.GenerativeModel(NANO_BANANA_MODEL_NAME)
+
+    contents = _load_image_parts(image_paths)
+    contents.append(genai.types.Part.from_text(text=prompt))
+
+    stream = model.generate_content(
+        contents=contents,
+        stream=True,
+    )
+
+    return _process_api_stream_response(stream)
+
+
 def _load_image_parts(image_paths: list[str]) -> list[types.Part]:
     """Loads image files and converts them into GenAI Part objects."""
     parts = []
@@ -109,7 +135,7 @@ def remix():
     try:
         file.save(temp_filepath)
 
-        remix_result = remix_images([temp_filepath], prompt)
+        remix_result = remix_images_with_api_key([temp_filepath], prompt)
 
         if remix_result:
             return send_file(
