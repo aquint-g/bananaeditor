@@ -17,11 +17,9 @@ COPY . .
 ENV PORT 8080
 EXPOSE 8080
 
-# Define environment variables for the application
-# These will be passed in from the Cloud Run service configuration
+# Define environment variable for the application
+# This will be passed in from the Cloud Run service configuration
 ENV GOOGLE_CLOUD_API_KEY ""
-ENV GOOGLE_PROJECT_ID ""
-ENV GOOGLE_REGION ""
 
 # Run app.py when the container launches
 CMD exec gunicorn --bind :$PORT --workers 1 --threads 8 --timeout 0 server:app
