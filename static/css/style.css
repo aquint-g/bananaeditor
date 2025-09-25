@@ -300,7 +300,7 @@ label[for="asset-upload"]:hover {
     background-color: var(--bg-color);
 }
 
-#ai-results img {
+#ai-results img, #masterpiece-results img {
     max-width: 100%;
     max-height: 300px;
     border-radius: 5px;
