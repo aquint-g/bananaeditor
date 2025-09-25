@@ -14,7 +14,7 @@ function resetAIModal() {
     resultsContainer.innerHTML = '<p class="placeholder-text">AI generations will appear here</p>';
     const acceptBtn = document.getElementById('accept-ai-btn');
     if (acceptBtn) {
-        acceptBtn.remove(); // Remove button if it exists
+        acceptBtn.style.display = 'none';
     }
     newImageUrl = null;
 }
@@ -80,17 +80,10 @@ async function handleReimagine() {
 
         resultsContainer.innerHTML = `<img src="${newImageUrl}" alt="AI generated image">`;
 
-        // Create and show the "Accept" button if it doesn't exist
-        let acceptBtn = document.getElementById('accept-ai-btn');
-        if (!acceptBtn) {
-            acceptBtn = document.createElement('button');
-            acceptBtn.id = 'accept-ai-btn';
-            acceptBtn.textContent = 'Accept & Replace';
-            acceptBtn.addEventListener('click', acceptAIImage);
-            // Place it after the results container (which now holds the image)
-            document.querySelector('.modal-content').appendChild(acceptBtn);
+        const acceptBtn = document.getElementById('accept-ai-btn');
+        if (acceptBtn) {
+            acceptBtn.style.display = 'block';
         }
-        acceptBtn.style.display = 'block';
 
     } catch (error) {
         resultsContainer.innerHTML = '<p class="placeholder-text">Failed to generate image. Please try again.</p>';
@@ -176,11 +169,16 @@ export function initMockupFeatures() {
     const reimagineBtn = document.getElementById('auto-reimagine-btn');
     const exportBtn = document.getElementById('export-btn');
     const clearBtn = document.getElementById('clear-btn');
+    const acceptBtn = document.getElementById('accept-ai-btn');
 
     closeBtn.addEventListener('click', closeAIModal);
     reimagineBtn.addEventListener('click', handleReimagine);
     exportBtn.addEventListener('click', exportCanvas);
     clearBtn.addEventListener('click', clearCanvas);
+    if (acceptBtn) {
+        acceptBtn.addEventListener('click', acceptAIImage);
+    }
+
 
     modal.addEventListener('click', (e) => {
         if (e.target === modal) {
