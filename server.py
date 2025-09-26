@@ -195,7 +195,7 @@ def remove_background():
         file.save(temp_filepath)
 
         # The prompt is fixed for this operation
-        prompt = "Replace the background of this image with the solid color magenta (RGB: 255, 0, 255)."
+        prompt = "Replace the entire background of this image with a solid, flat, non-gradient, pure magenta color. The exact RGB color to use is (255, 0, 255)."
         result = remove_background_from_image([temp_filepath], prompt)
 
         if result:
