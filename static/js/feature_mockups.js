@@ -116,13 +116,16 @@ function acceptAIImage() {
             aiTargetItem.originalImage = newImage;
             aiTargetItem.dataset.chromaKey = 'false'; // Reset chroma key status
             redrawCanvasItem(aiTargetItem, newImage, false);
+
+            // Close the modal only after the canvas has been updated
+            closeAIModal();
         };
         newImage.src = newImageUrl;
     } else { // It's an IMG
         imageElement.src = newImageUrl;
+        // For simple images, we can close immediately
+        closeAIModal();
     }
-
-    closeAIModal();
 }
 
 
