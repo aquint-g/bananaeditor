@@ -4,6 +4,8 @@ import { openAIModal } from './feature_mockups.js';
 
 // The currently selected item on the canvas
 let activeItem = null;
+// The Cropper.js instance
+let cropper = null;
 // A counter to ensure new items always appear on top
 let zIndexCounter = 1;
 // A state object to manage the details of the current user action (moving, resizing, etc.)
@@ -237,6 +239,88 @@ function deleteItem() {
     }
 }
 
+// --- CROP MODAL ---
+
+/**
+ * Opens the crop modal for the selected image.
+ * @param {HTMLElement} item - The canvas item wrapper to crop.
+ */
+function openCropModal(item) {
+    if (!item || !item.originalImage) return;
+
+    const modal = document.getElementById('crop-modal');
+    const image = document.getElementById('crop-image-source');
+    const cropBtn = document.getElementById('crop-btn');
+
+    // Set the image source for the cropper
+    image.src = item.originalImage.src;
+
+    // Show the modal
+    modal.style.display = 'flex';
+
+    // Handler for the crop button click
+    const cropHandler = () => {
+        if (cropper) {
+            const croppedCanvas = cropper.getCroppedCanvas();
+            const newImageDataUrl = croppedCanvas.toDataURL('image/png');
+
+            const newImage = new Image();
+            newImage.onload = () => {
+                // Update the original image of the canvas item
+                item.originalImage = newImage;
+                // Redraw the item on the main canvas
+                redrawCanvasItem(item, newImage, item.dataset.chromaKey === 'true');
+            };
+            newImage.src = newImageDataUrl;
+
+            closeCropModal();
+        }
+    };
+
+    // Ensure Cropper is initialized after the image has loaded
+    image.onload = () => {
+        // Destroy previous cropper instance if it exists
+        if (cropper) {
+            cropper.destroy();
+        }
+        // Initialize Cropper.js
+        cropper = new Cropper(image, {
+            aspectRatio: 0,
+            viewMode: 1,
+            autoCropArea: 1,
+        });
+
+        // Add event listener for the crop button, removing any old one
+        cropBtn.replaceWith(cropBtn.cloneNode(true));
+        document.getElementById('crop-btn').addEventListener('click', cropHandler);
+    };
+
+    image.onerror = () => {
+        console.error("Failed to load image for cropping.");
+        closeCropModal();
+    };
+}
+
+
+/**
+ * Closes the crop modal and cleans up the Cropper instance.
+ */
+function closeCropModal() {
+    const modal = document.getElementById('crop-modal');
+    modal.style.display = 'none';
+
+    // Destroy the cropper instance to free up resources
+    if (cropper) {
+        cropper.destroy();
+        cropper = null;
+    }
+
+    // Clear the image source
+    const image = document.getElementById('crop-image-source');
+    image.src = '';
+}
+
+
 /**
  * Redraws the image onto the canvas item, optionally applying a chroma key.
  * @param {HTMLElement} item - The canvas item wrapper.
@@ -461,6 +545,9 @@ export function initCanvasManager() {
             case 'context-delete':
                 deleteItem();
                 break;
+            case 'context-crop':
+                openCropModal(activeItem);
+                break;
             case 'context-remove-background':
                 removeBackground(activeItem);
                 break;
@@ -472,6 +559,12 @@ export function initCanvasManager() {
         // Always hide the menu after a command is executed
         hideContextMenu();
     });
+
+    // Crop modal close button
+    const cropModal = document.getElementById('crop-modal');
+    const closeCropBtn = cropModal.querySelector('.close-btn');
+    closeCropBtn.addEventListener('click', closeCropModal);
+
 
     // Toolbar button listeners
     document.getElementById('aspect-ratio-btn').addEventListener('click', toggleAspectRatio);
