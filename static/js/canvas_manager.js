@@ -36,10 +36,22 @@ function createItem(src, x, y, filename) {
         wrapper.dataset.filename = filename;
     }
 
-    const img = document.createElement('img');
+    const canvasEl = document.createElement('canvas');
+    canvasEl.classList.add('canvas-item');
+    wrapper.appendChild(canvasEl);
+
+    const img = new Image();
+    img.crossOrigin = "Anonymous"; // Allow loading external images for processing
+    img.onload = () => {
+        // Set canvas size to image size
+        canvasEl.width = img.naturalWidth;
+        canvasEl.height = img.naturalHeight;
+        const ctx = canvasEl.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        // Store the original image data on the wrapper for later use (e.g., resizing)
+        wrapper.originalImage = img;
+    };
     img.src = src;
-    img.classList.add('canvas-item');
-    wrapper.appendChild(img);
 
     const rotateHandle = document.createElement('div');
     rotateHandle.classList.add('handle', 'rotate');
@@ -148,6 +160,12 @@ function onMouseMove(e) {
         const newHeight = Math.max(actionState.startDims.h + dy, 20); // min height 20px
         activeItem.style.width = `${newWidth}px`;
         activeItem.style.height = `${newHeight}px`;
+
+        // Redraw the canvas to prevent stretching and re-apply chroma key if needed
+        if (activeItem.originalImage) {
+            const useChroma = activeItem.dataset.chromaKey === 'true';
+            redrawCanvasItem(activeItem, activeItem.originalImage, useChroma);
+        }
     } else if (actionState.action === 'rotating') {
         const angle = Math.atan2(e.clientY - actionState.centerY, e.clientX - actionState.centerX) * (180 / Math.PI);
         const startAngle = Math.atan2(actionState.startPos.y - actionState.centerY, actionState.startPos.x - actionState.centerX) * (180 / Math.PI);
@@ -220,26 +238,74 @@ function deleteItem() {
 }
 
 /**
+ * Redraws the image onto the canvas item, optionally applying a chroma key.
+ * @param {HTMLElement} item - The canvas item wrapper.
+ * @param {HTMLImageElement} image - The image to draw.
+ * @param {boolean} useChromaKey - Whether to apply the chroma key effect.
+ */
+function redrawCanvasItem(item, image, useChromaKey = false) {
+    const canvas = item.querySelector('canvas');
+    const ctx = canvas.getContext('2d');
+
+    // Set canvas drawing size to match the wrapper's current size
+    canvas.width = item.clientWidth;
+    canvas.height = item.clientHeight;
+
+    ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+
+    if (useChromaKey) {
+        applyChromaKey(canvas, { r: 255, g: 0, b: 255 });
+    }
+}
+
+/**
+ * Applies a chroma key effect to a canvas, making a specific color transparent.
+ * @param {HTMLCanvasElement} canvas - The canvas to process.
+ * @param {object} keyColor - The color to make transparent (e.g., { r: 255, g: 0, b: 255 }).
+ */
+function applyChromaKey(canvas, keyColor) {
+    const ctx = canvas.getContext('2d');
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imageData.data;
+    const tolerance = 30; // Tolerance for color matching
+
+    for (let i = 0; i < data.length; i += 4) {
+        const r = data[i];
+        const g = data[i + 1];
+        const b = data[i + 2];
+
+        // Check if the pixel color is close to the key color
+        if (Math.abs(r - keyColor.r) < tolerance &&
+            Math.abs(g - keyColor.g) < tolerance &&
+            Math.abs(b - keyColor.b) < tolerance) {
+            // Set alpha to 0 to make it transparent
+            data[i + 3] = 0;
+        }
+    }
+    ctx.putImageData(imageData, 0, 0);
+}
+
+/**
  * Sends the active image to the server to remove its background.
  * @param {HTMLElement} item - The canvas item wrapper.
  */
 async function removeBackground(item) {
-    const img = item.querySelector('img');
-    const originalSrc = img.src;
+    const canvas = item.querySelector('canvas');
+    if (!canvas) {
+        console.error('No canvas found in the item.');
+        return;
+    }
 
-    // Provide visual feedback
     item.classList.add('loading-background');
 
     try {
-        const response = await fetch(originalSrc);
-        const blob = await response.blob();
-
-        // Use the filename from the dataset, falling back to a default.
+        const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
         const fileName = item.dataset.filename || 'image-to-process.png';
 
         const formData = new FormData();
         formData.append('file', blob, fileName);
-        formData.append('prompt', 'Remove the background of this image');
+        // The prompt is handled server-side, but we still need to send it.
+        formData.append('prompt', 'Replace background with magenta');
 
         const removeResponse = await fetch('/remove_background', {
             method: 'POST',
@@ -253,11 +319,20 @@ async function removeBackground(item) {
 
         const newImageBlob = await removeResponse.blob();
         const newImageUrl = URL.createObjectURL(newImageBlob);
-        img.src = newImageUrl;
 
-        // Update the filename for the new, background-removed image.
-        // This is important for any subsequent operations.
-        item.dataset.filename = 'background-removed.png';
+        const newImage = new Image();
+        newImage.crossOrigin = "Anonymous";
+        newImage.onload = () => {
+            // Store the new image for resizing and future operations
+            item.originalImage = newImage;
+            // Mark that this item should now always use chroma key
+            item.dataset.chromaKey = 'true';
+            // Redraw the canvas with the new image and apply the effect
+            redrawCanvasItem(item, newImage, true);
+            // Update filename for the processed image
+            item.dataset.filename = 'processed.png';
+        };
+        newImage.src = newImageUrl;
 
     } catch (error) {
         console.error('Error removing background:', error);
