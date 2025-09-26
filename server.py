@@ -194,9 +194,11 @@ def remove_background():
     try:
         file.save(temp_filepath)
 
-        # The prompt is fixed for this operation
-        prompt = "Replace the entire background of this image with a solid, flat, non-gradient, pure magenta color. The exact RGB color to use is (255, 0, 255)."
-        result = remove_background_from_image([temp_filepath], prompt)
+        # Define the paths for the user image and the reference color image
+        image_paths = [temp_filepath, 'magenta_ref.jpg']
+        # The prompt now instructs the model to use the provided image as the color source
+        prompt = "Change the background of the first image to be the exact solid color from the second image."
+        result = remove_background_from_image(image_paths, prompt)
 
         if result:
             return send_file(
