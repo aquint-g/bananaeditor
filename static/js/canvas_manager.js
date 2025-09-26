@@ -23,14 +23,18 @@ let actionState = {
  * @param {string} src - The image source URL.
  * @param {number} x - The initial x-coordinate.
  * @param {number} y - The initial y-coordinate.
+ * @param {string} [filename] - The original filename of the image.
  */
-function createItem(src, x, y) {
+function createItem(src, x, y, filename) {
     const canvas = document.getElementById('canvas');
     const wrapper = document.createElement('div');
     wrapper.classList.add('canvas-item-wrapper');
     wrapper.style.left = `${x}px`;
     wrapper.style.top = `${y}px`;
     wrapper.style.zIndex = zIndexCounter++;
+    if (filename) {
+        wrapper.dataset.filename = filename;
+    }
 
     const img = document.createElement('img');
     img.src = src;
@@ -224,19 +228,17 @@ async function removeBackground(item) {
     const originalSrc = img.src;
 
     // Provide visual feedback
-    item.classList.add('loading-background'); // Use a specific class
+    item.classList.add('loading-background');
 
     try {
-        // Fetch the image data (works for URLs and data URLs)
         const response = await fetch(originalSrc);
         const blob = await response.blob();
 
-        // Use the original filename if possible, otherwise provide a default.
-        const fileName = originalSrc.substring(originalSrc.lastIndexOf('/') + 1) || 'image.png';
+        // Use the filename from the dataset, falling back to a default.
+        const fileName = item.dataset.filename || 'image-to-process.png';
 
         const formData = new FormData();
         formData.append('file', blob, fileName);
-        // The prompt is required by the backend structure, even if it's a fixed operation.
         formData.append('prompt', 'Remove the background of this image');
 
         const removeResponse = await fetch('/remove_background', {
@@ -250,15 +252,17 @@ async function removeBackground(item) {
         }
 
         const newImageBlob = await removeResponse.blob();
-        // Create a URL for the new blob and update the image
         const newImageUrl = URL.createObjectURL(newImageBlob);
         img.src = newImageUrl;
+
+        // Update the filename for the new, background-removed image.
+        // This is important for any subsequent operations.
+        item.dataset.filename = 'background-removed.png';
 
     } catch (error) {
         console.error('Error removing background:', error);
         alert('Failed to remove background. Please check the console for details.');
     } finally {
-        // Remove visual feedback
         item.classList.remove('loading-background');
     }
 }
@@ -311,6 +315,9 @@ export function makeAssetDraggable(asset) {
     asset.draggable = true;
     asset.addEventListener('dragstart', (event) => {
         event.dataTransfer.setData('text/plain', event.target.src);
+        if (event.target.dataset.filename) {
+            event.dataTransfer.setData('text/filename', event.target.dataset.filename);
+        }
     });
 }
 
@@ -319,12 +326,13 @@ function dropHandler(event) {
     const canvas = document.getElementById('canvas');
     canvas.classList.remove('drag-over');
     const src = event.dataTransfer.getData('text/plain');
+    const filename = event.dataTransfer.getData('text/filename');
 
     const canvasRect = canvas.getBoundingClientRect();
     const x = event.clientX - canvasRect.left;
     const y = event.clientY - canvasRect.top;
 
-    createItem(src, x, y);
+    createItem(src, x, y, filename);
 }
 
 // --- INITIALIZATION ---
