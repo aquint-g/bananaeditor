@@ -267,7 +267,7 @@ function applyChromaKey(canvas, keyColor) {
     const ctx = canvas.getContext('2d');
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     const data = imageData.data;
-    const tolerance = 60; // Increased tolerance for better color matching
+    const tolerance = 80; // Further increased tolerance for more permissive matching
 
     for (let i = 0; i < data.length; i += 4) {
         const r = data[i];
