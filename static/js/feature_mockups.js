@@ -1,4 +1,4 @@
-import { resetZIndexCounter } from './canvas_manager.js';
+import { resetZIndexCounter, redrawCanvasItem } from './canvas_manager.js';
 
 // --- "RE-IMAGINE WITH AI" MODAL ---
 
@@ -43,14 +43,21 @@ async function handleReimagine() {
 
     try {
         const imageElement = aiTargetItem.querySelector('.canvas-item');
-        const imageUrl = imageElement.src;
+        let blob;
 
-        // Fetch the image data from its source URL
-        const response = await fetch(imageUrl);
-        if (!response.ok) {
-            throw new Error(`Failed to fetch image: ${response.statusText}`);
+        if (imageElement.tagName.toUpperCase() === 'CANVAS') {
+            blob = await new Promise(resolve => imageElement.toBlob(resolve, 'image/png'));
+        } else { // It's an IMG
+            const imageUrl = imageElement.src;
+            if (!imageUrl) {
+                throw new Error("Image source is undefined.");
+            }
+            const response = await fetch(imageUrl);
+            if (!response.ok) {
+                throw new Error(`Failed to fetch image: ${response.statusText}`);
+            }
+            blob = await response.blob();
         }
-        const blob = await response.blob();
 
         // Create a FormData object to send the file and prompt
         const formData = new FormData();
@@ -97,10 +104,25 @@ async function handleReimagine() {
  * Replaces the target item's image with the newly generated one.
  */
 function acceptAIImage() {
-    if (aiTargetItem && newImageUrl) {
-        aiTargetItem.querySelector('.canvas-item').src = newImageUrl;
-        closeAIModal();
+    if (!aiTargetItem || !newImageUrl) return;
+
+    const imageElement = aiTargetItem.querySelector('.canvas-item');
+
+    if (imageElement.tagName.toUpperCase() === 'CANVAS') {
+        const newImage = new Image();
+        newImage.crossOrigin = "Anonymous";
+        newImage.onload = () => {
+            // A re-imagined image should not have chroma key applied by default
+            aiTargetItem.originalImage = newImage;
+            aiTargetItem.dataset.chromaKey = 'false'; // Reset chroma key status
+            redrawCanvasItem(aiTargetItem, newImage, false);
+        };
+        newImage.src = newImageUrl;
+    } else { // It's an IMG
+        imageElement.src = newImageUrl;
     }
+
+    closeAIModal();
 }
 
 

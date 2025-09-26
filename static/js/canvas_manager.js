@@ -243,7 +243,7 @@ function deleteItem() {
  * @param {HTMLImageElement} image - The image to draw.
  * @param {boolean} useChromaKey - Whether to apply the chroma key effect.
  */
-function redrawCanvasItem(item, image, useChromaKey = false) {
+export function redrawCanvasItem(item, image, useChromaKey = false) {
     const canvas = item.querySelector('canvas');
     const ctx = canvas.getContext('2d');
 
