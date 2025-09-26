@@ -1,4 +1,4 @@
-[2025-09-26 15:15:44 +0000] [10887] [DEBUG] Current configuration:
+[2025-09-26 16:11:15 +0000] [12865] [DEBUG] Current configuration:
   config: ./gunicorn.conf.py
   wsgi_app: None
   bind: ['0.0.0.0:5000']
@@ -58,22 +58,22 @@
   default_proc_name: server:app
   pythonpath: None
   paste: None
-  on_starting: <function OnStarting.on_starting at 0x7f199a449300>
-  on_reload: <function OnReload.on_reload at 0x7f199a449440>
-  when_ready: <function WhenReady.when_ready at 0x7f199a449580>
-  pre_fork: <function Prefork.pre_fork at 0x7f199a449760>
-  post_fork: <function Postfork.post_fork at 0x7f199a4498a0>
-  post_worker_init: <function PostWorkerInit.post_worker_init at 0x7f199a4499e0>
-  worker_int: <function WorkerInt.worker_int at 0x7f199a449b20>
-  worker_abort: <function WorkerAbort.worker_abort at 0x7f199a449c60>
-  pre_exec: <function PreExec.pre_exec at 0x7f199a449da0>
-  pre_request: <function PreRequest.pre_request at 0x7f199a449ee0>
-  post_request: <function PostRequest.post_request at 0x7f199a449f80>
-  child_exit: <function ChildExit.child_exit at 0x7f199a44a0c0>
-  worker_exit: <function WorkerExit.worker_exit at 0x7f199a44a200>
-  nworkers_changed: <function NumWorkersChanged.nworkers_changed at 0x7f199a44a340>
-  on_exit: <function OnExit.on_exit at 0x7f199a44a480>
-  ssl_context: <function NewSSLContext.ssl_context at 0x7f199a44a660>
+  on_starting: <function OnStarting.on_starting at 0x7ffb37d39300>
+  on_reload: <function OnReload.on_reload at 0x7ffb37d39440>
+  when_ready: <function WhenReady.when_ready at 0x7ffb37d39580>
+  pre_fork: <function Prefork.pre_fork at 0x7ffb37d39760>
+  post_fork: <function Postfork.post_fork at 0x7ffb37d398a0>
+  post_worker_init: <function PostWorkerInit.post_worker_init at 0x7ffb37d399e0>
+  worker_int: <function WorkerInt.worker_int at 0x7ffb37d39b20>
+  worker_abort: <function WorkerAbort.worker_abort at 0x7ffb37d39c60>
+  pre_exec: <function PreExec.pre_exec at 0x7ffb37d39da0>
+  pre_request: <function PreRequest.pre_request at 0x7ffb37d39ee0>
+  post_request: <function PostRequest.post_request at 0x7ffb37d39f80>
+  child_exit: <function ChildExit.child_exit at 0x7ffb37d3a0c0>
+  worker_exit: <function WorkerExit.worker_exit at 0x7ffb37d3a200>
+  nworkers_changed: <function NumWorkersChanged.nworkers_changed at 0x7ffb37d3a340>
+  on_exit: <function OnExit.on_exit at 0x7ffb37d3a480>
+  ssl_context: <function NewSSLContext.ssl_context at 0x7ffb37d3a660>
   proxy_protocol: False
   proxy_allow_ips: ['127.0.0.1', '::1']
   keyfile: None
@@ -92,9 +92,7 @@
   casefold_http_method: False
   forwarder_headers: ['SCRIPT_NAME', 'PATH_INFO']
   header_map: drop
-[2025-09-26 15:15:44 +0000] [10887] [INFO] Starting gunicorn 23.0.0
-[2025-09-26 15:15:44 +0000] [10887] [DEBUG] Arbiter booted
-[2025-09-26 15:15:44 +0000] [10887] [INFO] Listening at: http://0.0.0.0:5000 (10887)
-[2025-09-26 15:15:44 +0000] [10887] [INFO] Using worker: sync
-[2025-09-26 15:15:44 +0000] [11014] [INFO] Booting worker with pid: 11014
-[2025-09-26 15:15:44 +0000] [10887] [DEBUG] 1 workers
+[2025-09-26 16:11:15 +0000] [12865] [INFO] Starting gunicorn 23.0.0
+[2025-09-26 16:11:15 +0000] [12865] [DEBUG] Arbiter booted
+[2025-09-26 16:11:15 +0000] [12865] [INFO] Listening at: http://0.0.0.0:5000 (12865)
+[2025-09-26 16:11:15 +0000] [12865] [INFO] Using worker: sync
