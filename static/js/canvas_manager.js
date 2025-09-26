@@ -216,6 +216,54 @@ function deleteItem() {
 }
 
 /**
+ * Sends the active image to the server to remove its background.
+ * @param {HTMLElement} item - The canvas item wrapper.
+ */
+async function removeBackground(item) {
+    const img = item.querySelector('img');
+    const originalSrc = img.src;
+
+    // Provide visual feedback
+    item.classList.add('loading-background'); // Use a specific class
+
+    try {
+        // Fetch the image data (works for URLs and data URLs)
+        const response = await fetch(originalSrc);
+        const blob = await response.blob();
+
+        // Use the original filename if possible, otherwise provide a default.
+        const fileName = originalSrc.substring(originalSrc.lastIndexOf('/') + 1) || 'image.png';
+
+        const formData = new FormData();
+        formData.append('file', blob, fileName);
+        // The prompt is required by the backend structure, even if it's a fixed operation.
+        formData.append('prompt', 'Remove the background of this image');
+
+        const removeResponse = await fetch('/remove_background', {
+            method: 'POST',
+            body: formData,
+        });
+
+        if (!removeResponse.ok) {
+            const errorText = await removeResponse.text();
+            throw new Error(`Server error: ${removeResponse.status} ${errorText}`);
+        }
+
+        const newImageBlob = await removeResponse.blob();
+        // Create a URL for the new blob and update the image
+        const newImageUrl = URL.createObjectURL(newImageBlob);
+        img.src = newImageUrl;
+
+    } catch (error) {
+        console.error('Error removing background:', error);
+        alert('Failed to remove background. Please check the console for details.');
+    } finally {
+        // Remove visual feedback
+        item.classList.remove('loading-background');
+    }
+}
+
+/**
  * Checks if a given item is partially or fully outside the canvas bounds.
  * @param {HTMLElement} item - The item to check.
  */
@@ -329,6 +377,9 @@ export function initCanvasManager() {
                 break;
             case 'context-delete':
                 deleteItem();
+                break;
+            case 'context-remove-background':
+                removeBackground(activeItem);
                 break;
             case 'context-ai-reinvent':
                 // This function is imported from feature_mockups.js
