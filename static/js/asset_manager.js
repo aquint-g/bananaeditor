@@ -19,6 +19,7 @@ function handleFileUpload(event) {
                 img.src = e.target.result;
                 img.title = file.name;
                 img.classList.add('asset-thumbnail');
+                img.dataset.filename = file.name;
 
                 const p = document.createElement('p');
                 p.textContent = file.name;
